@@ -14,6 +14,7 @@
            
             {% for blog in blogs %}
             <li><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></li>
+             {{ user.username }}
              {{ blog.entry_date }}
              <br>
              {{ blog.body|truncate(20) }}

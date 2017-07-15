@@ -6,6 +6,8 @@
   <h1>{{ blog.title|title }}</h1>
   </hr>
   <p>{{ blog.body }}</p>
+  <p>by {{ user.username }}</p>
+  <p>written, {{ blog.entry_date }}</p>
   <!-- <h1>Page currently under construction</h1> -->
 
 {% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+    {% block content %}
+        <h2>Sign up, it's super fun!!</h2>
+        <!-- fieldset???? -->
+        <form action="/confirm" method="post" name="signup">
+        
+            <div><label>Username</label><input type="text" name="username" value="{{ username }}" required>
+            
+            <div><label>Password</label><input type="password" name="passw" required>
+                
+            <div><label>Confirm Password</label><input type="password" name="conf_pass" required>
+            
+            <!--TODO radio button choices sort by oldest or newest-->
+            <p><input type="submit" value="Submit to it!">
+            
+        </form>
+    {% endblock %}

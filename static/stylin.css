@@ -1,7 +1,11 @@
-.error {
+.negative {
             color:red;
             font-size: 5rem;
         }
+
+.postivie {
+            color:green;
+}
 
 h1  {
     text-align: center;
@@ -22,4 +26,11 @@ textarea  {
     height: 10rem;
     width: 50rem;
 
+}
+
+label {
+    display:inline-block;
+    margin-right: 2rem;
+    margin-bottom: 1rem;
+    width: 5rem;
 }
