@@ -2,8 +2,10 @@
 <html>
 <head>
      <link rel= "stylesheet" type= "text/css" href= "/static/stylin.css">
+     <!--TODO conditionals, if user logged out don't display log out-->
     <h3><a href="/new_blog">Submit a blog</a></h3>
-    <h3><a href="/">Home</a></h3>
+    <h3><a href="/blogs">Home</a></h3>
+    <h3><a href="/logout">Log on out!</a></h3>
     <title>Blog-O-RAMA</title>
     {% block head %}
     {% endblock %}
@@ -18,6 +20,7 @@
             {% endfor %}
         </ul>
         {% endwith %}-->
+   
     {% endblock %}
 </body>
 

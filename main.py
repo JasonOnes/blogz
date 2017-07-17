@@ -40,6 +40,7 @@ class User(db.Model):
     def __repr__(self):
         return '{}'.format(self.username)
 
+#TODO get this to work
 # @app.before_request
 # def login_required():
 #     allowed_routes = ['login', 'register']
@@ -60,7 +61,7 @@ def log_in():
         user = User.query.filter_by(username=username).first()
         if user and user.password == password:
             session['username'] = username
-            flash("(B)logged in!", "postive")
+            flash("(B)logged in!", "positive")
             return redirect('/blogs')
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
@@ -131,13 +132,13 @@ def add_blog():
         body = request.form['body']
         #user = request.args('id')
         if not title and not body:
-            flash("You haven't entered ANYTHING!", "error")
+            flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
         if not title:
-            flash("You need to title your post!", "error")
+            flash("You need to title your post!", "negative")
             return render_template('/new_blog.html', body=body)
         if not body:
-            flash("You haven't actually blogged about anything!", "error")
+            flash("You haven't actually blogged about anything!", "negative")
             return render_template('/new_blog.html', title=title)
         #user = User.query.filter_by(id='id').first()
         user = User.query.filter_by(username=session['username']).first()
