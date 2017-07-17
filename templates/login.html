@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
+ {% with messages = get_flashed_messages(with_categories=True) %}
+        <ul>
+            {% for category, message in messages %}
+            <li class="{{category}}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endwith %}
 <h1>Log in to the BLOGOSPHERE!</h1>
 <p>If you don't have an account, you may <a href="/signup">sign on up</a> for one, it's free and it shows!</p>
 <form action="/login" method="post">

@@ -2,7 +2,8 @@
 <html>
 <head>
      <link rel= "stylesheet" type= "text/css" href= "/static/stylin.css">
-    
+    <h3><a href="/new_blog">Submit a blog</a></h3>
+    <h3><a href="/">Home</a></h3>
     <title>Blog-O-RAMA</title>
     {% block head %}
     {% endblock %}
@@ -10,13 +11,13 @@
 </head>
 <body>
     {% block content %}
-    {% with messages = get_flashed_messages(with_categories=True) %}
+    <!--{% with messages = get_flashed_messages(with_categories=True) %}
         <ul>
             {% for category, message in messages %}
             <li class="{{category}}">{{ message }}</li>
             {% endfor %}
         </ul>
-        {% endwith %}
+        {% endwith %}-->
     {% endblock %}
 </body>
 

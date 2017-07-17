@@ -53,6 +53,7 @@ def login():
 
 @app.route('/login', methods=['GET', 'POST'])
 def log_in():
+    #TODO place an if in session flash already logged in as "username?""
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -63,6 +64,7 @@ def log_in():
             return redirect('/blogs')
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
+            redirect('/')
     return render_template('login.html')    
 
 # def main_page():
@@ -89,25 +91,27 @@ def confirm_register():
     match_psw = match.fullmatch(psw)
     if not match_name:
         flash("no spaces allowed and must be between 3 and 20 chars", "negative")
-        return render_template("login.html")
+        return render_template("signup.html")
     elif not match_psw:
          flash("no spaces allowed and must be between 3 and 20 chars", "negative")
-         return render_template("login.html", username=name)
+         return render_template("signup.html", username=name)
     elif psw != con_psw:
         flash("Passwords didn't match!!", "negative")
-        return render_template("login.html", username=name)
+        return render_template("signup.html", username=name)
     else:
         new_user = User(name, psw)
         db.session.add(new_user)
         db.session.commit()
-        flash("Logged IN!", "positive")
+        flash("(B)Logged IN!", "positive")
         return redirect('/blogs')
 
-@app.route('/new_blog')
-def bloggit():    
-    return render_template('/new_blog.html')
+# @app.route('/new_blog')
+# def bloggit():  
+#     _aid = request.args.get('username')
+#     print("+++++HERE'S THE ID:" + str(_aid))  
+#     return render_template('/new_blog.html')
 
-@app.route('/blogs')
+@app.route('/blogs', methods=['GET','POST'])
 def main_page():
     """#TODO get users preference for how they want blogs sorted on main page
     # TODO blog_sort = request.args.get('blog_sort')
@@ -118,10 +122,10 @@ def main_page():
     blogs = Blog.query.all()
     return render_template('blogs.html', blogs=blogs)
 
-@app.route('/blog', methods=['GET','POST'])
+@app.route('/new_blog', methods=['GET','POST'])
 # Once the blog has been written it commits to databas after correct view is rendered thus letting us 
 # edit if we'd like and then reference by created id
-def see_body():
+def add_blog():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
@@ -135,13 +139,20 @@ def see_body():
         if not body:
             flash("You haven't actually blogged about anything!", "error")
             return render_template('/new_blog.html', title=title)
-        user = User.query.filter_by(id='id').first()
+        #user = User.query.filter_by(id='id').first()
+        user = User.query.filter_by(username=session['username']).first()
         new_blog = Blog(title, body, entry_date=datetime.now(), author=user) #utcnow())
         db.session.add(new_blog)
         db.session.commit()
-        return render_template('/blog.html', blog=new_blog, user=user)
+        print("######USER IS:" + str(user))
+        #blog = Blog.query.filter_by(entry_date).order_by(entry_date)
+        blog = Blog.query.order_by(Blog.entry_date.desc()).first()
+        return render_template('/blog.html', blog=blog)
+        #blogs = Blog.query.all()
+        #return render_template('/blogs.html', blogs=blogs)#, blogs=new_blog, user=user)
     # blogs = Blog.query.get.order_by(entry_date).all()
-    # return render_template('/blogs.html', blogs=blogs)
+    return render_template('/new_blog.html')#, blogs=blogs)
+
 @app.route('/blog/<blog_id>/')
 #  gets the blogs id from the query paramater and then passes that blog to template
 def see_blog_page(blog_id):
