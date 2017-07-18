@@ -21,7 +21,9 @@
            
             {% for blog in blogs %}
             <li><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></li>
-             <!--{#{{ blog.author.username }}#}-->
+            <!--TODO make author link to page with author's other blogs-->
+             by <a href="{{ url_for('see_blogs_by_auth_page', auth_id=blog.author.id) }}">{{ blog.author.username }}</a>
+             <br>
              {{ blog.entry_date }}
              <br>
              {{ blog.body|truncate(20) }}

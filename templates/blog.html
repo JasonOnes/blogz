@@ -1,12 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
+<!--<!{#--{% for blog in blogs %}
   <h1>{{ blog.title|title }}</h1>
   </hr>
   <p>{{ blog.body }}</p>
   <p>by {{ blog.author.username }}</p>
   <p>written, {{ blog.entry_date }}</p>
+  {% endfor %}--#}>-->
   <!-- <h1>Page currently under construction</h1> -->
+<ul>    
+    <!--<li><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></li>-->
+    <!--TODO make author link to page with author's other blogs-->
+      <h1>{{ blog.title|title }}</h1>
+      by <a href="{{ url_for('see_blogs_by_auth_page', auth_id=blog.author.id) }}">{{ blog.author.username }}</a>
+        <br>
+        {{ blog.entry_date }}
+        <br>
+        {{ blog.body }}
 
+</ul>
 {% endblock %}

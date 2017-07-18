@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!--keeping body truncated to link to blogs individual site to make author blogs page more friendly-->
+<ul>    
+    {% for blog in blogs %}
+      <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></h1>
+      by {{ blog.author.username }}
+        <br>
+       on {{ blog.entry_date }}
+        <br>
+        {{ blog.body|truncate(50) }}
+    {% endfor %}
+</ul>
+{% endblock %}

@@ -1,10 +1,11 @@
 .negative {
             color:red;
-            font-size: 5rem;
+            font-size: 4rem;
         }
 
 .positive {
             color:green;
+            font-size: 4rem;
 }
 
 h1  {
