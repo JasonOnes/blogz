@@ -6,7 +6,13 @@
     <!--<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='/styling.css') }}">-->
      
     <title>Blog-O-RAMA</title>
-    
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        <ul>
+            {% for category, message in messages %}
+            <li class="{{category}}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endwith %}
     {% endblock %}
     
 </head>
@@ -17,13 +23,7 @@
     <h3><a href="/logout">Log on out!</a></h3>
     {% block content %}
     
-    <!--{% with messages = get_flashed_messages(with_categories=True) %}
-        <ul>
-            {% for category, message in messages %}
-            <li class="{{category}}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endwith %}-->
+    
    
     {% endblock %}
 </body>
