@@ -8,6 +8,28 @@
             font-size: 4rem;
 }
 
+nav  {
+    
+    position: relative;
+   
+    height: auto;
+    background-color: orange; 
+ }
+
+nav ul {
+    padding: 0;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+
+nav ul li {
+    list-style: none;
+    display: inline-block;
+    margin-right: 15px;
+    
+}
+
 h1  {
     text-align: center;
     color: darkgreen;
@@ -18,8 +40,14 @@ h2  {
     font-style: italic;
 }
 
+div  {
+    color: orange;
+    font-size: 1rem;
+}
+
 body  {
     background-color: beige;
+    font-size: 1.2rem;
 }
 
 textarea  {

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<ul>
+{% for author in authors %}
+    <li><a href="{{ url_for('see_blogs_by_auth_page', auth_id=author.id) }}">{{ author.username }}</a></li>
+        
+        {% endfor %}
+
+</ul>
+{% endblock %}

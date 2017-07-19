@@ -40,14 +40,18 @@ class User(db.Model):
     def __repr__(self):
         return '{}'.format(self.username)
 
-#TODO get this to work without redirecting css
-# @app.before_request
-# def login_required():
-#     allowed_routes = ['log_in', 'signup', 'confirm_register', 'logout', 'testy']
-#     # it may seem weird to allow a user to logout if not logged in but makes it easier to redirect to login 
-#     # page with logout flash message 
-#     if request.endpoint not in allowed_routes and 'username' not in session:
-#         return redirect('/login')
+#TO get this to work without redirecting css I changed the function up to what's not allowed
+@app.before_request
+def login_required():
+    #allowed_routes = ['log_in', 'signup', 'confirm_register', 'logout', 'testy']
+    not_allowed_routes = ['main_page', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
+    # it may seem weird to allow a user to logout if not logged in but makes it easier to redirect to login 
+    # page with logout flash message 
+    if request.endpoint  in not_allowed_routes and 'username' not in session:
+        flash("You need to log in!", "negative")
+        return redirect('/login')
+    # elif request.endpoint not in not_allowed_routes and 'username' in session:
+    #     flash("You are (b)logged in!", "positive")
 
 @app.route('/test')
 def testy():
@@ -56,6 +60,7 @@ def testy():
 
 @app.route('/')
 def login():
+    # just so user doesn't have to manually input /login on arrival, how would they know to do this?
     return redirect('/login')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -112,12 +117,6 @@ def confirm_register():
         flash("(B)Logged IN!", "positive")
         return redirect('/index')
 
-# @app.route('/new_blog')
-# def bloggit():  
-#     _aid = request.args.get('username')
-#     print("+++++HERE'S THE ID:" + str(_aid))  
-#     return render_template('/new_blog.html')
-
 @app.route('/index', methods=['GET','POST'])
 def main_page():
     """#TODO get users preference for how they want blogs sorted on main page
@@ -126,17 +125,15 @@ def main_page():
         blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
     # sort alphabetically, by author, length of body?
     else:"""
-    blogs = Blog.query.all()
+    blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
     return render_template('index.html', blogs=blogs)
 
 @app.route('/new_blog', methods=['GET','POST'])
-# Once the blog has been written it commits to databas after correct view is rendered thus letting us 
-# edit if we'd like and then reference by created id
 def add_blog():
+    # checks to make sure there is a title and a body to commit to database then displays blog to user
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
-        #user = request.args('id')
         if not title and not body:
             flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
@@ -146,18 +143,14 @@ def add_blog():
         if not body:
             flash("You haven't actually blogged about anything!", "negative")
             return render_template('/new_blog.html', title=title)
-        #user = User.query.filter_by(id='id').first()
         user = User.query.filter_by(username=session['username']).first()
         new_blog = Blog(title, body, entry_date=datetime.now(), author=user) #utcnow())
         db.session.add(new_blog)
         db.session.commit()
-        print("######USER IS:" + str(user))
-        #blog = Blog.query.filter_by(entry_date).order_by(entry_date)
+        #print("######USER IS:" + str(user))
         blog = Blog.query.order_by(Blog.entry_date.desc()).first()
         return render_template('/blog.html', blog=blog)
-        #blogs = Blog.query.all()
-        #return render_template('/blogs.html', blogs=blogs)#, blogs=new_blog, user=user)
-    # blogs = Blog.query.get.order_by(entry_date).all()
+
     return render_template('/new_blog.html')#, blogs=blogs)
 
 @app.route('/blog/<blog_id>/')
@@ -168,25 +161,27 @@ def see_blog_page(blog_id):
 
 @app.route('/blogs_by_auth/<auth_id>/')
 def see_blogs_by_auth_page(auth_id):
+    # creates list of blogs that have that author and passes to template
     blogs = Blog.query.filter_by(auth_id=auth_id).all()
     #print('#######BLOG list' + blogs)
     return render_template('/blogs_by_auth.html', blogs=blogs)
 
+@app.route('/auth_list')
+def display_authors():
+    authors = User.query.all()
+    return render_template('auth_list.html', authors=authors)
+
 @app.route('/logout')
 def logout():
+    # pretty self explanatory
     try:
         if session['username']:
             del session['username']
-            flash("You are successfully logged out!, Go outside!", "positive")
+            flash("You are successfully logged out! Go outside!", "positive")
             return redirect('/')
     except KeyError:
         flash("You aren't currently logged in.", "negative")
-        return redirect('/')
-    # TODO 
-    # else:
-    #     flash("You aren't logged in NOW!", "negative")
-    #     return redirect('/')
-        
+        return redirect('/')    
 
 if __name__ == ('__main__'):
     app.run()

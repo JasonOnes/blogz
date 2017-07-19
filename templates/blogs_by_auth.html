@@ -2,6 +2,9 @@
 
 {% block content %}
 <!--keeping body truncated to link to blogs individual site to make author blogs page more friendly-->
+<!--since linked by auth_id which is a Blog attribute must only use Blog attribs not User attribs, 
+hence blog.author.username rather than user.username-->
+
 <ul>    
     {% for blog in blogs %}
       <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></h1>

@@ -2,14 +2,7 @@
 
     {% block content %}
         <h2>Sign up, it's super fun!!</h2>
-        <!--{% with messages = get_flashed_messages(with_categories=True) %}
-        <ul>
-            {% for category, message in messages %}
-            <li class="{{category}}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endwith %}-->
-        <!-- fieldset???? -->
+      
         <form action="/confirm" method="post" name="signup">
         
             <div><label>Username</label><input type="text" name="username" value="{{ username }}" required>
