@@ -2,6 +2,8 @@ from flask import Flask, request, redirect, render_template, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import re
+import forgery_py
+from random import seed, randint
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -26,6 +28,18 @@ class Blog(db.Model):
     def __repr__(self):
         return 'The {} blog contains {}.'.format(self.title, self.body)
 
+    def bogus_blogs(count):
+        # generates fake blogs TODO try and get lorem_hipsum?
+        seed()
+        auth_count = User.query.count()
+        for fake in range(count):
+            auth = User.query.offset(randint(0, auth_count -1)).first()
+            blog = Blog(title=forgery_py.lorem_ipsum.word(), body=forgery_py.lorem_ipsum.sentences(randint(1,7)),
+                        entry_date=forgery_py.date.date(True), author=auth)
+            db.session.add(blog)
+            db.session.commit()
+
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(15))
@@ -39,6 +53,18 @@ class User(db.Model):
 
     def __repr__(self):
         return '{}'.format(self.username)
+
+    def make_fakes(count):
+        #generates however many (count) authors for testing population
+        seed()
+        for fake in range(count):
+            author = User(username=forgery_py.internet.user_name(True), password=forgery_py.lorem_ipsum.word())
+            db.session.add(author)
+            # try:
+            db.session.commit()
+            
+
+
 
 #TO get this to work without redirecting css I changed the function up to what's not allowed
 @app.before_request
@@ -67,6 +93,7 @@ def login():
 def log_in():
     #TODO place an if in session flash already logged in as "username?""
     if request.method == 'POST':
+       
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
@@ -77,6 +104,8 @@ def log_in():
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
             redirect('/')
+    else:
+         User.make_fakes(5)
     return render_template('login.html')    
 
 # def main_page():
@@ -150,8 +179,9 @@ def add_blog():
         #print("######USER IS:" + str(user))
         blog = Blog.query.order_by(Blog.entry_date.desc()).first()
         return render_template('/blog.html', blog=blog)
-
-    return render_template('/new_blog.html')#, blogs=blogs)
+    else:
+        blog = Blog.bogus_blogs(10)
+        return render_template('/new_blog.html')#, blogs=blogs)
 
 @app.route('/blog/<blog_id>/')
 #  gets the blogs id from the query paramater and then passes that blog to template
