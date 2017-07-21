@@ -4,8 +4,10 @@
     
     <h1>Blog City Baby!</h1>
     <h2>population: you</h2>
-
-    {% if blogs %}
+<!--TODO if no blogs condition-->
+    {% if blogs|length == 0 %}
+    <h3>GEt to Bloggin.\'!!</h3>
+    {% else %}
     <h3>Ye Olde Posts!!</h3>
     <p>Read and Cringe!</p>
     <div>(Most recent first)</div>

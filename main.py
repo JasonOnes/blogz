@@ -117,7 +117,7 @@ def confirm_register():
         flash("(B)Logged IN!", "positive")
         return redirect('/index')
 
-@app.route('/index', methods=['GET','POST'])
+@app.route('/index')#, methods=['GET','POST'])
 def main_page():
     """#TODO get users preference for how they want blogs sorted on main page
     # TODO blog_sort = request.args.get('blog_sort')
