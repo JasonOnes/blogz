@@ -3,7 +3,7 @@ from datetime import datetime
 import re
 from models import User, Blog
 from app import app, db
-from hashutility import check_pw_hash
+from hashutility import check_pw_hash, make_pw_hash
 
             
 
@@ -37,15 +37,19 @@ def log_in():
        
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and check_pw_hash(password, user.pw_hash):
-            session['username'] = username
-            flash("(B)logged in!", "positive")
-            return redirect('/index')
+        users = User.query.filter_by(username=username)
+        if users.count() == 1:
+            #if there is only one user by that name then . . . which there shouldn't be duplicates due to condition
+            # at registration
+            user = users.first()
+            if user and check_pw_hash(password, user.pw_hash):
+                session['username'] = username
+                flash("(B)logged in!", "positive")
+                return redirect('/index')
         
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
-            redirect('/')
+            return redirect('/')
     # else:
     #      User.make_fakes(5)
     return render_template('login.html')    
@@ -65,6 +69,7 @@ def signup():
 
 @app.route('/confirm', methods=['POST'])
 def confirm_register():
+    # TODO check for duplicate if username already used
     """checks to see if inputs valid for login"""
     name = request.form['username']
     psw = request.form['passw']
@@ -72,9 +77,16 @@ def confirm_register():
     match = re.compile(r"[^\s-]{3,20}")
     match_name = match.fullmatch(name)
     match_psw = match.fullmatch(psw)
-    if name == 'random':
-        User.make_fakes(5)
-        return redirect('/index')
+    # if name == 'random':
+    #     User.make_fakes(5)
+    #     return redirect('/index')
+    user_with_that_name = User.query.filter_by(username=name).count()
+    #print('&&&&&&&&&&&&&&&' + str(user_with_that_name))
+    # filtering so no duplicate usernames can occur by checking to see if the list of the
+    # names that match in database is 0
+    if user_with_that_name > 0:
+        flash("That name is already in use, come up with another", "negative")
+        return render_template("signup.html")
     elif not match_name:
         flash("no spaces allowed and must be between 3 and 20 chars", "negative")
         return render_template("signup.html")
@@ -88,11 +100,12 @@ def confirm_register():
         new_user = User(name, psw)
         db.session.add(new_user)
         db.session.commit()
+        session['username'] = new_user.username
         flash("(B)Logged IN!", "positive")
         return redirect('/index')
-        #return redirect('url_for(main_page)')#/index')
+    
 
-@app.route('/index')#, methods=['GET','POST'])
+@app.route('/index', methods=['GET','POST'])
 def index():
     """#TODO get users preference for how they want blogs sorted on main page
     # TODO blog_sort = request.args.get('blog_sort')
@@ -129,7 +142,7 @@ def add_blog():
         return render_template('/blog.html', blog=blog)
     # else:
     #     blog = Blog.bogus_blogs(10)
-    #     return render_template('/new_blog.html')
+    return render_template('/new_blog.html')
 
 @app.route('/blog/<blog_id>/')
 #  gets the blogs id from the query paramater and then passes that blog to template

@@ -8,11 +8,14 @@ def make_salt():
 def make_pw_hash(password, salt=None):
     if not salt:
         salt = make_salt()
-        _hash = hashlib.sha256(str.encode(password + salt)).hexdigest()
-        return '{0}, {1}'.format(_hash, salt)
+    salty_hash = hashlib.sha256(str.encode(password + salt)).hexdigest()
+    _hash = hashlib.sha256(str.encode(password)).hexdigest()
+    #return '{0}, {1}'.format(_hash, salt)
+    return _hash
 
 def check_pw_hash(password, _hash):
-    salt = _hash.split(',')[1]
-    if make_pw_hash(password, salt) == _hash:
+    #salt = _hash.split(',')[1]
+    #_hash = _hash.split(',')[0]
+    if make_pw_hash(password) == _hash:
         return True
     return False 
