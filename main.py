@@ -1,77 +1,17 @@
-from flask import Flask, request, redirect, render_template, url_for, flash, session
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, redirect, render_template, url_for, flash, session
 from datetime import datetime
 import re
-import forgery_py
-from random import seed, randint, choice
-from hashutility import make_pw_hash, check_pw_hash
+from models import User, Blog
+from app import app, db
+from hashutility import check_pw_hash
 
-app = Flask(__name__)
-app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI']= "mysql+pymysql://blogz:summer69@localhost:3306/blogz"
-app.config['SQLALCHEMY_ECHO'] = True
-db = SQLAlchemy(app)
-app.secret_key = 'SHHH,itsaSECRET'
-
-class Blog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120))
-    body = db.Column(db.Text)
-    entry_date = db.Column(db.DateTime)
-    auth_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __init__(self, title, body, entry_date, author):#=datetime.utcnow()):
-        self.title = title
-        self.body = body
-        self.entry_date = entry_date
-        self.author = author
-
-    def __repr__(self):
-        return 'The {} blog contains {}.'.format(self.title, self.body)
-
-    def bogus_blogs(count):
-        # generates fake blogs TODO try and get lorem_hipsum?
-        seed()
-        auth_count = User.query.count()
-        for fake in range(count):
-            auth = User.query.offset(randint(0, auth_count -1)).first()
-            blog = Blog(title=forgery_py.lorem_ipsum.word(), body=forgery_py.lorem_ipsum.sentences(randint(1,7)),
-                        entry_date=forgery_py.date.date(True), author=auth)
-            db.session.add(blog)
-            db.session.commit()
-
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50))
-    pw_hash = db.Column(db.String(100))
-    # TODO blog_sort = db.Column(db.String(6))    
-    blogs = db.relationship('Blog', backref='author')
-
-    def __init__(self, username, password):
-        self.username = username
-        self.pw_hash = make_pw_hash(password)
-
-    def __repr__(self):
-        return '{}'.format(self.username)
-
-    def make_fakes(count):
-        #generates however many (count) authors for testing population
-        seed()
-        for fake in range(count):
-            author = User(username=forgery_py.internet.user_name(True), password=forgery_py.lorem_ipsum.word())
-            db.session.add(author)
-            # try:
-            db.session.commit()
             
-
-
 
 #TO get this to work without redirecting css I changed the function up to what's not allowed
 @app.before_request
 def login_required():
     #allowed_routes = ['log_in', 'signup', 'confirm_register', 'logout', 'testy']
-    not_allowed_routes = ['main_page', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
+    not_allowed_routes = ['index', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
     # it may seem weird to allow a user to logout if not logged in but makes it easier to redirect to login 
     # page with logout flash message 
     if request.endpoint  in not_allowed_routes and 'username' not in session:
@@ -102,6 +42,7 @@ def log_in():
             session['username'] = username
             flash("(B)logged in!", "positive")
             return redirect('/index')
+        
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
             redirect('/')
@@ -131,7 +72,10 @@ def confirm_register():
     match = re.compile(r"[^\s-]{3,20}")
     match_name = match.fullmatch(name)
     match_psw = match.fullmatch(psw)
-    if not match_name:
+    if name == 'random':
+        User.make_fakes(5)
+        return redirect('/index')
+    elif not match_name:
         flash("no spaces allowed and must be between 3 and 20 chars", "negative")
         return render_template("signup.html")
     elif not match_psw:
@@ -146,9 +90,10 @@ def confirm_register():
         db.session.commit()
         flash("(B)Logged IN!", "positive")
         return redirect('/index')
+        #return redirect('url_for(main_page)')#/index')
 
-@app.route('/index', methods=['GET','POST'])
-def main_page():
+@app.route('/index')#, methods=['GET','POST'])
+def index():
     """#TODO get users preference for how they want blogs sorted on main page
     # TODO blog_sort = request.args.get('blog_sort')
     if blog_sort == 'newest':
@@ -164,6 +109,8 @@ def add_blog():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
+        if title == "random":
+            Blog.bogus_blogs(5)
         if not title and not body:
             flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
