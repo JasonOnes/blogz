@@ -1,50 +1,17 @@
-from flask import Flask, request, redirect, render_template, url_for, flash, session
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, redirect, render_template, url_for, flash, session
 from datetime import datetime
 import re
+from models import User, Blog
+from app import app, db
+from hashutility import check_pw_hash, make_pw_hash
 
-app = Flask(__name__)
-app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI']= "mysql+pymysql://blogz:summer69@localhost:3306/blogz"
-app.config['SQLALCHEMY_ECHO'] = True
-db = SQLAlchemy(app)
-app.secret_key = 'SHHH,itsaSECRET'
-
-class Blog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120))
-    body = db.Column(db.Text)
-    entry_date = db.Column(db.DateTime)
-    auth_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
-    def __init__(self, title, body, entry_date, author):#=datetime.utcnow()):
-        self.title = title
-        self.body = body
-        self.entry_date = entry_date
-        self.author = author
-
-    def __repr__(self):
-        return 'The {} blog contains {}.'.format(self.title, self.body)
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(15))
-    password = db.Column(db.String(15))
-    # TODO blog_sort = db.Column(db.String(6))    
-    blogs = db.relationship('Blog', backref='author')
-
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
-
-    def __repr__(self):
-        return '{}'.format(self.username)
+            
 
 #TO get this to work without redirecting css I changed the function up to what's not allowed
 @app.before_request
 def login_required():
     #allowed_routes = ['log_in', 'signup', 'confirm_register', 'logout', 'testy']
-    not_allowed_routes = ['main_page', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
+    not_allowed_routes = ['index', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
     # it may seem weird to allow a user to logout if not logged in but makes it easier to redirect to login 
     # page with logout flash message 
     if request.endpoint  in not_allowed_routes and 'username' not in session:
@@ -67,16 +34,24 @@ def login():
 def log_in():
     #TODO place an if in session flash already logged in as "username?""
     if request.method == 'POST':
+       
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
-            session['username'] = username
-            flash("(B)logged in!", "positive")
-            return redirect('/index')
+        users = User.query.filter_by(username=username)
+        if users.count() == 1:
+            #if there is only one user by that name then . . . which there shouldn't be duplicates due to condition
+            # at registration
+            user = users.first()
+            if user and check_pw_hash(password, user.pw_hash):
+                session['username'] = username
+                flash("(B)logged in!", "positive")
+                return redirect('/index')
+        
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
-            redirect('/')
+            return redirect('/')
+    # else:
+    #      User.make_fakes(5)
     return render_template('login.html')    
 
 # def main_page():
@@ -94,6 +69,7 @@ def signup():
 
 @app.route('/confirm', methods=['POST'])
 def confirm_register():
+    # TODO check for duplicate if username already used
     """checks to see if inputs valid for login"""
     name = request.form['username']
     psw = request.form['passw']
@@ -101,7 +77,17 @@ def confirm_register():
     match = re.compile(r"[^\s-]{3,20}")
     match_name = match.fullmatch(name)
     match_psw = match.fullmatch(psw)
-    if not match_name:
+    # if name == 'random':
+    #     User.make_fakes(5)
+    #     return redirect('/index')
+    user_with_that_name = User.query.filter_by(username=name).count()
+    #print('&&&&&&&&&&&&&&&' + str(user_with_that_name))
+    # filtering so no duplicate usernames can occur by checking to see if the list of the
+    # names that match in database is 0
+    if user_with_that_name > 0:
+        flash("That name is already in use, come up with another", "negative")
+        return render_template("signup.html")
+    elif not match_name:
         flash("no spaces allowed and must be between 3 and 20 chars", "negative")
         return render_template("signup.html")
     elif not match_psw:
@@ -114,11 +100,13 @@ def confirm_register():
         new_user = User(name, psw)
         db.session.add(new_user)
         db.session.commit()
+        session['username'] = new_user.username
         flash("(B)Logged IN!", "positive")
         return redirect('/index')
+    
 
-@app.route('/index')#, methods=['GET','POST'])
-def main_page():
+@app.route('/index', methods=['GET','POST'])
+def index():
     """#TODO get users preference for how they want blogs sorted on main page
     # TODO blog_sort = request.args.get('blog_sort')
     if blog_sort == 'newest':
@@ -134,6 +122,8 @@ def add_blog():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
+        if title == "random":
+            Blog.bogus_blogs(5)
         if not title and not body:
             flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
@@ -150,8 +140,9 @@ def add_blog():
         #print("######USER IS:" + str(user))
         blog = Blog.query.order_by(Blog.entry_date.desc()).first()
         return render_template('/blog.html', blog=blog)
-
-    return render_template('/new_blog.html')#, blogs=blogs)
+    # else:
+    #     blog = Blog.bogus_blogs(10)
+    return render_template('/new_blog.html')
 
 @app.route('/blog/<blog_id>/')
 #  gets the blogs id from the query paramater and then passes that blog to template
