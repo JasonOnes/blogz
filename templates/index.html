@@ -5,7 +5,7 @@
     <h1>Blog City Baby!</h1>
     <h2>population: you</h2>
 <!--TODO if no blogs condition-->
-    {% if blogs|length == 0 %}
+    {% if pages.items|length == 0 %}
     <h3>GEt to Bloggin.\'!!</h3>
     {% else %}
     <h3>Ye Olde Posts!!</h3>
@@ -13,16 +13,38 @@
     <div>(Most recent first)</div>
         <ul>
            
-            {% for blog in blogs %}
+            {% for blog in pages.items %}
             <li><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></li>
-            <!--TODO make author link to page with author's other blogs-->
-             by <a href="{{ url_for('see_blogs_by_auth_page', auth_id=blog.author.id) }}">{{ blog.author.username }}</a>
+            by <a href="{{ url_for('see_blogs_by_auth_page', auth_id=blog.author.id, page=1) }}">{{ blog.author.username }}</a>
+             <!--<a href="{{ url_for('see_blogs_by_auth_page', auth_id=blog.author.id, page=1) }}">{{ blog.author.username }}</a>-->
              <br>
              {{ blog.entry_date }}
              <br>
              {{ blog.body|truncate(20) }}
             {% endfor %}
         </ul>
+       
+
+
+
     {% endif %}
 
+{% endblock %}
+
+{% block footer %}
+    <div class="page-selects">
+        {% if pages.has_prev %}
+            <a href="{{ url_for('index', page=pages.prev_num) }}">&lt;&lt; Newer blogs</a>
+            {% else %}
+                &lt;&lt; Newer blogs |
+                <!--displays Newer blogs without link since has_prev false-->
+            {% endif %}
+        {% if pages.has_next %}
+            <a href="{{ url_for('index', page=pages.next_num) }}">Older Blogs &gt;&gt;</a>
+            {% else %}
+                Older blogs &gt;&gt;
+                <!--ditto for older blogs (next page) display-->
+            {% endif %}
+    </div>
+    <h6>Hello down here!</h6>
 {% endblock %}

@@ -4,9 +4,12 @@
 
 <ul>
 {% for author in authors %}
-    <li><a href="{{ url_for('see_blogs_by_auth_page', auth_id=author.id) }}">{{ author.username }}</a></li>
-        
+    <li><a href="{{url_for('see_blogs_by_auth_page', auth_id=author.id) }}">{{ author.username }}</a></li>
+    <!--<li><a href="{{ url_for('see_blogs_by_auth_page', auth_id=author.id, page = request.args.get('page', 1, type=int) ) }}">{{ author.username }}</a></li>-->
+    
         {% endfor %}
 
 </ul>
 {% endblock %}
+
+

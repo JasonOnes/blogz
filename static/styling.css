@@ -45,6 +45,10 @@ div  {
     font-size: 1rem;
 }
 
+.page-selects  {
+    text-align: center;
+
+}
 body  {
     background-color: beige;
     font-size: 1.2rem;

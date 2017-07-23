@@ -2,8 +2,8 @@ from flask import request, redirect, render_template, url_for, flash, session
 from datetime import datetime
 import re
 from models import User, Blog
-from app import app, db
-from hashutility import check_pw_hash, make_pw_hash
+from app import app, db, BLOGS_PER_PAGE
+from hashutility import check_pw_hash
 
             
 
@@ -81,7 +81,6 @@ def confirm_register():
     #     User.make_fakes(5)
     #     return redirect('/index')
     user_with_that_name = User.query.filter_by(username=name).count()
-    #print('&&&&&&&&&&&&&&&' + str(user_with_that_name))
     # filtering so no duplicate usernames can occur by checking to see if the list of the
     # names that match in database is 0
     if user_with_that_name > 0:
@@ -106,15 +105,15 @@ def confirm_register():
     
 
 @app.route('/index', methods=['GET','POST'])
-def index():
-    """#TODO get users preference for how they want blogs sorted on main page
-    # TODO blog_sort = request.args.get('blog_sort')
-    if blog_sort == 'newest':
-        blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
-    # sort alphabetically, by author, length of body?
-    else:"""
-    blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
-    return render_template('index.html', blogs=blogs)
+@app.route('/index/<int:page>', methods=['GET', 'POST'])
+def index(page=1):
+    #all_blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
+    """turns list of blogs into a Pagination object which can can be divided by 5, said object must
+    cannot be iterized however and must be converted to list by calling .items which is done at template
+    level."""
+    #BLOGS_PER_PAGE = 5
+    pages = Blog.query.order_by(Blog.entry_date.desc()).paginate(page, BLOGS_PER_PAGE, error_out=False)
+    return render_template('index.html', pages=pages)
 
 @app.route('/new_blog', methods=['GET','POST'])
 def add_blog():
@@ -150,16 +149,24 @@ def see_blog_page(blog_id):
     check_blog = Blog.query.filter_by(id=blog_id).first()
     return render_template('/blog.html', blog=check_blog)
 
-@app.route('/blogs_by_auth/<auth_id>/')
-def see_blogs_by_auth_page(auth_id):
-    # creates list of blogs that have that author and passes to template
-    blogs = Blog.query.filter_by(auth_id=auth_id).all()
-    #print('#######BLOG list' + blogs)
-    return render_template('/blogs_by_auth.html', blogs=blogs)
+@app.route('/blogs_by_auth/<auth_id>')#/<int:page>')
+@app.route('/blogs_by_auth/<auth_id>/<int:page>')
+def see_blogs_by_auth_page(auth_id, page=1):
+    #BLOGS_PER_PAGE = 5
+    pages = Blog.query.filter_by(auth_id=auth_id).order_by(Blog.entry_date.desc()).paginate(page, BLOGS_PER_PAGE, error_out=False)
+    """ We'll do the following in views"""
+    # prev_num = None
+    # if pages.has_prev:
+    #     prev_num = url_for('see_blogs_by_auth_page', auth_id=auth_id, page=page-1, _external=True)
+    # #_next = None
+    # if pages.has_next:
+    #     next_num = url_for('see_blogs_by_auth_page', auth_id=auth_id, page=page+1, _external=True)
+
+    return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages)
 
 @app.route('/auth_list')
 def display_authors():
-    authors = User.query.all()
+    authors = User.query.order_by(User.username).all()# alphabetic
     return render_template('auth_list.html', authors=authors)
 
 @app.route('/logout')

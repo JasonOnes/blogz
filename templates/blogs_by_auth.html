@@ -6,7 +6,7 @@
 hence blog.author.username rather than user.username-->
 
 <ul>    
-    {% for blog in blogs %}
+    {% for blog in pages.items %}
       <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></h1>
       by {{ blog.author.username }}
         <br>
@@ -15,4 +15,24 @@ hence blog.author.username rather than user.username-->
         {{ blog.body|truncate(50) }}
     {% endfor %}
 </ul>
+
+
+
+{% endblock %}
+
+{% block footer %}
+    <div class="page-selects">
+    {% if pages.has_prev %}
+        <a href="{{ url_for('see_blogs_by_auth_page', auth_id=auth_id, page=pages.prev_num) }}">&lt;&lt; Newer blogs</a>
+        {% else %}
+            &lt;&lt; Newer blogs |-->
+            <!--displays Newer blogs without link since has_prev false-->
+        {% endif %}
+    {% if pages.has_next %}
+        <a href="{{ url_for('see_blogs_by_auth_page', auth_id=auth_id, page=pages.next_num) }}">Older Blogs &gt;&gt;</a>
+        {% else %}
+            Older blogs &gt;&gt;
+            <!--ditto for older blogs (next page) display-->
+        {% endif %} 
+    </div>
 {% endblock %}
