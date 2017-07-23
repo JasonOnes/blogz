@@ -29,7 +29,8 @@ class Blog(db.Model):
                         entry_date=forgery_py.date.date(True), author=auth)
             db.session.add(blog)
             db.session.commit()
-
+        new_blog = Blog.query.first()
+        return new_blog
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)

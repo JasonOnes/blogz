@@ -5,7 +5,7 @@ from models import User, Blog
 from app import app, db, BLOGS_PER_PAGE
 from hashutility import check_pw_hash
 
-            
+        
 
 #TO get this to work without redirecting css I changed the function up to what's not allowed
 @app.before_request
@@ -34,7 +34,11 @@ def log_in():
         username = request.form['username']
         password = request.form['password']
         users = User.query.filter_by(username=username)
-        if users.count() == 1:
+        if username == "random":
+            User.make_fakes(5)
+            flash("5 new fake users ceated, but still. . . ", "positive")
+            return redirect('/index')
+        elif users.count() == 1:
             #if there is only one user by that name then . . . shouldn't be duplicates due to condition at registration
             user = users.first()
             if user and check_pw_hash(password, user.pw_hash):
@@ -44,8 +48,6 @@ def log_in():
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
             return redirect('/')
-    # else:
-    #      User.make_fakes(5)
     return render_template('login.html')    
 
 @app.route('/signup')
@@ -104,8 +106,11 @@ def add_blog():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
-        if title == "random":
+        if title == "random" and not body:
             Blog.bogus_blogs(5)
+            flash("5 bogus blogs have been added.", "positive")
+            return redirect('/index')
+            #return render_template('/blog.html', blog=new_blog)
         if not title and not body:
             flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
@@ -144,7 +149,11 @@ def see_blogs_by_auth_page(auth_id, page=1):
     # #_next = None
     # if pages.has_next:
     #     next_num = url_for('see_blogs_by_auth_page', auth_id=auth_id, page=page+1, _external=True)
-    author = str(pages.items[0-(len(pages.items))].author.username)#convoluted but works
+    try:
+        author = str(pages.items[0-(len(pages.items))].author.username)#convoluted but works
+    except IndexError:
+        flash("No blogs by this author at this time.", "negative")
+        return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages)# since there are no blogs can't retreive author
     return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages, author=author)
 
 @app.route('/auth_list')
