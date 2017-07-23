@@ -10,16 +10,13 @@ from hashutility import check_pw_hash
 #TO get this to work without redirecting css I changed the function up to what's not allowed
 @app.before_request
 def login_required():
-    #allowed_routes = ['log_in', 'signup', 'confirm_register', 'logout', 'testy']
     not_allowed_routes = ['index', 'add_blog', 'see_blog_page', 'see_blog_by_auth_page', 'display_authors' ]
     # it may seem weird to allow a user to logout if not logged in but makes it easier to redirect to login 
     # page with logout flash message 
     if request.endpoint  in not_allowed_routes and 'username' not in session:
         flash("You need to log in!", "negative")
         return redirect('/login')
-    # elif request.endpoint not in not_allowed_routes and 'username' in session:
-    #     flash("You are (b)logged in!", "positive")
-
+    
 @app.route('/test')
 def testy():
     blogs = Blog.query.first()
@@ -32,21 +29,18 @@ def login():
 
 @app.route('/login', methods=['GET', 'POST'])
 def log_in():
-    #TODO place an if in session flash already logged in as "username?""
+    # basic login using light hashing
     if request.method == 'POST':
-       
         username = request.form['username']
         password = request.form['password']
         users = User.query.filter_by(username=username)
         if users.count() == 1:
-            #if there is only one user by that name then . . . which there shouldn't be duplicates due to condition
-            # at registration
+            #if there is only one user by that name then . . . shouldn't be duplicates due to condition at registration
             user = users.first()
             if user and check_pw_hash(password, user.pw_hash):
                 session['username'] = username
                 flash("(B)logged in!", "positive")
                 return redirect('/index')
-        
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
             return redirect('/')
@@ -54,22 +48,12 @@ def log_in():
     #      User.make_fakes(5)
     return render_template('login.html')    
 
-# def main_page():
-#     #TODO get users preference for how they want blogs sorted on main page
-#     blog_sort = request.args.get('blog_sort')
-#     if blog_sort == 'newest':
-#         blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
-#     # sort alphabetically, by author, length of body?
-#     else:
-#         blogs = Blog.query.all()
-#     return render_template('welcome.html', blogs=blogs)
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
 
 @app.route('/confirm', methods=['POST'])
 def confirm_register():
-    # TODO check for duplicate if username already used
     """checks to see if inputs valid for login"""
     name = request.form['username']
     psw = request.form['passw']
@@ -104,14 +88,13 @@ def confirm_register():
         return redirect('/index')
     
 
-@app.route('/index', methods=['GET','POST'])
-@app.route('/index/<int:page>', methods=['GET', 'POST'])
+@app.route('/index')#, methods=['GET','POST'])
+@app.route('/index/<int:page>')#, methods=['GET', 'POST'])
 def index(page=1):
-    #all_blogs = Blog.query.order_by(Blog.entry_date.desc()).all()
     """turns list of blogs into a Pagination object which can can be divided by 5, said object must
     cannot be iterized however and must be converted to list by calling .items which is done at template
     level."""
-    #BLOGS_PER_PAGE = 5
+    #BLOGS_PER_PAGE = put in app.py for consistency and DRY
     pages = Blog.query.order_by(Blog.entry_date.desc()).paginate(page, BLOGS_PER_PAGE, error_out=False)
     return render_template('index.html', pages=pages)
 
@@ -152,7 +135,7 @@ def see_blog_page(blog_id):
 @app.route('/blogs_by_auth/<auth_id>')#/<int:page>')
 @app.route('/blogs_by_auth/<auth_id>/<int:page>')
 def see_blogs_by_auth_page(auth_id, page=1):
-    #BLOGS_PER_PAGE = 5
+    # displays all the blogs by linked author
     pages = Blog.query.filter_by(auth_id=auth_id).order_by(Blog.entry_date.desc()).paginate(page, BLOGS_PER_PAGE, error_out=False)
     """ We'll do the following in views"""
     # prev_num = None
@@ -161,8 +144,8 @@ def see_blogs_by_auth_page(auth_id, page=1):
     # #_next = None
     # if pages.has_next:
     #     next_num = url_for('see_blogs_by_auth_page', auth_id=auth_id, page=page+1, _external=True)
-
-    return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages)
+    author = str(pages.items[0-(len(pages.items))].author.username)#convoluted but works
+    return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages, author=author)
 
 @app.route('/auth_list')
 def display_authors():

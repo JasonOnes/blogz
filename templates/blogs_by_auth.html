@@ -5,12 +5,13 @@
 <!--since linked by auth_id which is a Blog attribute must only use Blog attribs not User attribs, 
 hence blog.author.username rather than user.username-->
 
+<h1>Blogs by {{ author }}</h1>
 <ul>    
     {% for blog in pages.items %}
       <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></h1>
-      by {{ blog.author.username }}
+      <!--by {{ blog.author.username }}-->
         <br>
-       on {{ blog.entry_date }}
+       written  {{ blog.entry_date }}
         <br>
         {{ blog.body|truncate(50) }}
     {% endfor %}
