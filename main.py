@@ -3,7 +3,7 @@ from datetime import datetime
 import re
 from models import User, Blog
 from app import app, db, BLOGS_PER_PAGE
-from hashutility import check_pw_hash
+from hashutility import check_pw_hash, make_pw_hash
 
         
 
@@ -34,7 +34,7 @@ def log_in():
         username = request.form['username']
         password = request.form['password']
         users = User.query.filter_by(username=username)
-        if username == "random":
+        if username == "random": # for dev to populate blogz randomly regular user might mistakenly find this
             User.make_fakes(5)
             flash("5 new fake users ceated, but still. . . ", "positive")
             return redirect('/index')
@@ -45,6 +45,11 @@ def log_in():
                 session['username'] = username
                 flash("(B)logged in!", "positive")
                 return redirect('/index')
+            else:
+                flash("wrong hash", "negative")
+                print(str(user) + "**" + str(make_pw_hash(password) + "**" + str(user.pw_hash)))
+                #this was for testing salted hash functions which were giving me problems
+                return redirect('/login')
         else:
             flash("Either you aren\'t registered or you screwed up the login", "negative")
             return redirect('/')
@@ -106,11 +111,10 @@ def add_blog():
     if request.method == 'POST':
         title = request.form['blogtitle']
         body = request.form['body']
-        if title == "random" and not body:
+        if title == "random" and not body:# for dev to populate blogz
             Blog.bogus_blogs(5)
             flash("5 bogus blogs have been added.", "positive")
             return redirect('/index')
-            #return render_template('/blog.html', blog=new_blog)
         if not title and not body:
             flash("You haven't entered ANYTHING!", "negative")
             return render_template('/new_blog.html')
@@ -127,8 +131,6 @@ def add_blog():
         #print("######USER IS:" + str(user))
         blog = Blog.query.order_by(Blog.entry_date.desc()).first()
         return render_template('/blog.html', blog=blog)
-    # else:
-    #     blog = Blog.bogus_blogs(10)
     return render_template('/new_blog.html')
 
 @app.route('/blog/<blog_id>/')
@@ -150,7 +152,8 @@ def see_blogs_by_auth_page(auth_id, page=1):
     # if pages.has_next:
     #     next_num = url_for('see_blogs_by_auth_page', auth_id=auth_id, page=page+1, _external=True)
     try:
-        author = str(pages.items[0-(len(pages.items))].author.username)#convoluted but works
+        author = str(pages.items[0-(len(pages.items))].author.username)#convoluted but works, gives the name of the
+        #author for all the blogs on the pages can't check the paginate object itself
     except IndexError:
         flash("No blogs by this author at this time.", "negative")
         return render_template('blogs_by_auth.html', auth_id=auth_id, pages=pages)# since there are no blogs can't retreive author

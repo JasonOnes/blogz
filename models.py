@@ -20,13 +20,14 @@ class Blog(db.Model):
         return 'The {} blog contains {}.'.format(self.title, self.body)
 
     def bogus_blogs(count):
-        # generates fake blogs TODO try and get lorem_hipsum?
+        # generates fake blogs 
         seed()
         auth_count = User.query.count()
         for fake in range(count):
             auth = User.query.offset(randint(0, auth_count -1)).first()
             blog = Blog(title=forgery_py.lorem_ipsum.word(), body=forgery_py.lorem_ipsum.sentences(randint(1,7)),
-                        entry_date=forgery_py.date.date(True), author=auth)
+                        entry_date=forgery_py.date.date(), author=auth)
+            # can't find a forgery_py module to give a time, datetime module not supported
             db.session.add(blog)
             db.session.commit()
         new_blog = Blog.query.first()
@@ -35,8 +36,7 @@ class Blog(db.Model):
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50))
-    pw_hash = db.Column(db.String(100))
-    # TODO blog_sort = db.Column(db.String(6))    
+    pw_hash = db.Column(db.String(100)) 
     blogs = db.relationship('Blog', backref='author')
 
     def __init__(self, username, password):
@@ -52,8 +52,7 @@ class User(db.Model):
         for fake in range(count):
             author = User(username=forgery_py.internet.user_name(True), password=forgery_py.lorem_ipsum.word())
             db.session.add(author)
-            # try:
             db.session.commit()
-            #user = User.query.get.first()
+
         user = User.query.first()
         return user

@@ -8,7 +8,7 @@ hence blog.author.username rather than user.username-->
 <h1>Blogs by {{ author }}</h1>
 <ul>    
     {% for blog in pages.items %}
-      <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title }}</a></h1>
+      <h1><a href="{{ url_for('see_blog_page', blog_id=blog.id) }}">{{ blog.title|title }}</a></h1>
       <!--by {{ blog.author.username }}-->
         <br>
        written  {{ blog.entry_date }}
